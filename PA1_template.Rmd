@@ -1,7 +1,8 @@
 ---
 title: "Reproducible Research: Peer Assignment 1"
-output: html_document
-keep_md: true
+output:
+  html_document:
+    keep_md: true
 ---
 
 This document describes a solution to the first Peer Assignment of the Reproducible Research course.
@@ -31,8 +32,6 @@ We clean the data by removing the `NA`s, and compute the total number of steps p
 ```{r}
 clean <- data[!is.na(data$steps), ]
 stepsPerDay <- tapply(clean$steps, as.factor(clean$date), FUN=sum)
-avgSteps <- mean(stepsPerDay)
-medSteps <- median(stepsPerDay)
 ```
 
 We can now plot the histogram of the total number of steps taken each day:
@@ -43,7 +42,13 @@ hist(stepsPerDay, breaks=10, freq=TRUE, main="Steps per Day",
 
 The default 10 bars and frequency y-axis work well. We see that the distribution seems roughly unimodal. The most typical activity is around 10,000 steps per day.
 
-More precisely, the mean number of steps per day is `r as.character(round(avgSteps,digits=2))` and the median number of steps per day is `r medSteps`.
+```{r}
+avgSteps <- mean(stepsPerDay)
+avgSteps
+medSteps <- median(stepsPerDay)
+medSteps
+```
+More precisely, the **mean** number of steps per day is `r as.character(round(avgSteps,digits=2))` and the **median** number of steps per day is `r medSteps`.
 
 
 ## What is the average daily activity pattern?
@@ -53,12 +58,15 @@ We now compute the average number of steps per 5-minute interval (using `tapply`
 avgSteps <- tapply(clean$steps, as.factor(clean$interval), FUN=mean)
 plot(names(avgSteps), avgSteps, type="l", main="Avg. Steps per Interval", 
      xlab="5min Interval (HHMM)", ylab="Avg. Number of Steps")
-maxInterval <- names(avgSteps)[which(avgSteps==max(avgSteps))]
 ```
 
 The x-axis is the 5-minute interval, in HHMM format, so 500 is 5h00. Nothing much happens before 5h00 or after 22h00 (that's 10PM in the US of A).
 
-The 5-minute interval that has the highest number of steps, on average, is `r maxInterval`, that is `r as.numeric(maxInterval) %/% 100` hours and `as.numeric(maxInterval) %% 100` minutes. On average `r round(avgSteps[maxInterval])` are taken in that interval.
+```{r}
+maxInterval <- names(avgSteps)[which(avgSteps==max(avgSteps))]
+maxInterval
+```
+The 5-minute interval that has the **highest** number of steps, on average, is `r maxInterval`, that is, `r as.numeric(maxInterval) %/% 100` hours and `r as.numeric(maxInterval) %% 100` minutes. On average `r round(avgSteps[maxInterval])` steps are taken in that interval.
 
 ## Imputing missing values
 
@@ -66,10 +74,13 @@ We now identify the missing values, and count them.
 ```{r}
 missing <- is.na(data$steps)
 n.missing <- sum(missing)
+n.missing
 ```
-There are `r n.missing` missign values in the dataset.
+There are `r n.missing` **missing values** in the dataset.
 
-Missing values are replaced with the average number of step for the corresponding period, as calculated earlier. We put this in a new data frame called `newdata`.
+Missing values are replaced with the average number of steps for the corresponding period, as calculated earlier. For example, a missing value for interval "835" will be replaced by the average activity observed for 8h35 (i.e. `avgSteps["835"]`).
+
+We put this in a new data frame called `newdata`.
 ```{r}
 newdata <- data
 newdata$steps[missing] <- avgSteps[as.character(data$interval[missing])]
@@ -81,9 +92,11 @@ newStepsPerDay <- tapply(newdata$steps, as.factor(newdata$date), FUN=sum)
 hist(newStepsPerDay, breaks=10, freq=TRUE, main="Steps per Day (filled in)",
      xlab="Number of Steps", ylab="Frequency")
 newAvgSteps <- mean(newStepsPerDay)
+newAvgSteps
 newMedSteps <- median(newStepsPerDay)
+newMedSteps
 ```
-After imputation of the missing data, the mean total number of steps is `r as.character(round(newAvgSteps, 2))`. Not surprisingly, this has not changed as we have imputed missing values with the average. However, the median total number of steps is now `r as.character(round(newMedSteps, 2))`. This is different from what we had above, and in fact, it is not even an integer number of steps. Replacing missing values with the average has the artefact (in this case) of "creating" days for which the total number of days is the average, and it turns out that these become the median.
+After imputation of the missing data, the **mean** total number of steps is `r as.character(round(newAvgSteps, 2))`. Not surprisingly, this has not changed as we have imputed missing values with the average. However, the **median** total number of steps is now `r as.character(round(newMedSteps, 2))`. This is different from what we had above, and in fact, it is not even an integer number of steps. Replacing missing values with the average has the artefact (in this case) of "creating" days for which the total number of days is the average, and it turns out that these become the median.
 
 
 ## Are there differences in activity patterns between weekdays and weekends?
